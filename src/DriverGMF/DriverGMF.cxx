@@ -23,6 +23,10 @@
 // Created   : Thu Nov 15 16:45:58 2012
 // Author    : Edward AGAPOV (eap)
 
+#if defined(__APPLE__) && defined(__arm64__)
+#include <mach/arm/thread_status.h>
+#endif
+
 #include "DriverGMF.hxx"
 
 #include <boost/filesystem.hpp>
@@ -55,7 +59,8 @@ namespace DriverGMF
 
   bool isExtensionCorrect( const std::string& fileName )
   {
-    std::string ext  = boost::filesystem::extension(fileName);
+    std::string ext  = boost::filesystem::path(fileName).extension().string();
+
     switch ( ext.size() ) {
     case 5: return ( ext == ".mesh" || ext == ".solb" );
     case 6: return ( ext == ".meshb" );

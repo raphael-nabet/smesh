@@ -212,9 +212,9 @@ namespace
 
       libraryFile._isURL = false;
       if ( boost::regex_match( libraryFile._name, matchResult, urlRegex ))
-        libraryFile._isURL = ( !matchResult.str( SCHEME    ).empty() &&
-                              !matchResult.str( AUTHORITY ).empty() &&
-                              !matchResult.str( PATH      ).empty() );
+        libraryFile._isURL = ( !matchResult.str( static_cast<int>(SCHEME) ).empty() &&
+                              !matchResult.str( static_cast<int>(AUTHORITY) ).empty() &&
+                              !matchResult.str( static_cast<int>(PATH) ).empty() );
     }
     if(libraryFile._isURL)
       return true;
@@ -226,9 +226,9 @@ namespace
 
       libraryFile._isURL = false;
       if ( boost::regex_match( libraryFile._name, matchResult, urlRegex ))
-        libraryFile._isURL = ( !matchResult.str( HOST ).empty() &&
-                              !matchResult.str( PORT ).empty() &&
-                              !matchResult.str( PATH ).empty() );
+        libraryFile._isURL = ( !matchResult.str( static_cast<int>(HOST) ).empty() &&
+                              !matchResult.str( static_cast<int>(PORT) ).empty() &&
+                              !matchResult.str( static_cast<int>(PATH) ).empty() );
     }
     return libraryFile._isURL;
   }

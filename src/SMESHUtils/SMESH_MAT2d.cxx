@@ -25,6 +25,8 @@
 
 #include "SMESH_MAT2d.hxx"
 
+#include <algorithm>
+#include <cmath>
 #include <list>
 
 #include <BRepAdaptor_CompCurve.hxx>
@@ -535,6 +537,7 @@ namespace
                      double                            scale[2])
   {
     const double theDiscrCoef = 0.5; // to decrease minSegLen for discretization
+    const int    theMaxNbDiv  = 100000; // max nb of sub-segments of a discretization segment
     TopLoc_Location loc;
 
     // discretize the EDGEs to get 2d points and segments
@@ -587,12 +590,25 @@ namespace
           if ( !c3d.IsNull() )
           {
             p = c3d->Value( u );
-            int nbDiv = int( p.Distance( pPrev ) / minSegLen / theDiscrCoef );
-            double dU = ( u - points.back()._u ) / nbDiv;
-            for ( int iD = 1; iD < nbDiv; ++iD )
+            // Do not convert inf/NaN to int: it is undefined behaviour.
+            // With minSegLen == 0 (e.g. from getSinuousEdges()), x86_64 yields
+            // INT_MIN (no subdivision) while ARM64 saturates to INT_MAX, leading
+            // to ~2^31 push_back() calls and an apparent hang (Apple Silicon).
+            int nbDiv = 1;
+            if ( minSegLen > 0 )
             {
-              double uD = points.back()._u + dU;
-              points.push_back( UVU( c2d->Value( uD ), uD ));
+              const double nbDivReal = p.Distance( pPrev ) / minSegLen / theDiscrCoef;
+              if ( std::isfinite( nbDivReal ) && nbDivReal > 1. )
+                nbDiv = int( std::min( nbDivReal, double( theMaxNbDiv )));
+            }
+            if ( nbDiv > 1 )
+            {
+              double dU = ( u - points.back()._u ) / nbDiv;
+              for ( int iD = 1; iD < nbDiv; ++iD )
+              {
+                double uD = points.back()._u + dU;
+                points.push_back( UVU( c2d->Value( uD ), uD ));
+              }
             }
             pPrev = p;
           }
