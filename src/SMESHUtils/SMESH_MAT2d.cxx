@@ -25,8 +25,10 @@
 
 #include "SMESH_MAT2d.hxx"
 
+#if defined(__APPLE__)
 #include <algorithm>
 #include <cmath>
+#endif
 #include <list>
 
 #include <BRepAdaptor_CompCurve.hxx>
@@ -537,7 +539,9 @@ namespace
                      double                            scale[2])
   {
     const double theDiscrCoef = 0.5; // to decrease minSegLen for discretization
+#if defined(__APPLE__)
     const int    theMaxNbDiv  = 100000; // max nb of sub-segments of a discretization segment
+#endif
     TopLoc_Location loc;
 
     // discretize the EDGEs to get 2d points and segments
@@ -590,6 +594,7 @@ namespace
           if ( !c3d.IsNull() )
           {
             p = c3d->Value( u );
+#if defined(__APPLE__)
             // Do not convert inf/NaN to int: it is undefined behaviour.
             // With minSegLen == 0 (e.g. from getSinuousEdges()), x86_64 yields
             // INT_MIN (no subdivision) while ARM64 saturates to INT_MAX, leading
@@ -610,6 +615,15 @@ namespace
                 points.push_back( UVU( c2d->Value( uD ), uD ));
               }
             }
+#else
+            int nbDiv = int( p.Distance( pPrev ) / minSegLen / theDiscrCoef );
+            double dU = ( u - points.back()._u ) / nbDiv;
+            for ( int iD = 1; iD < nbDiv; ++iD )
+            {
+              double uD = points.back()._u + dU;
+              points.push_back( UVU( c2d->Value( uD ), uD ));
+            }
+#endif
             pPrev = p;
           }
           points.push_back( UVU( c2d->Value( u ), u ));

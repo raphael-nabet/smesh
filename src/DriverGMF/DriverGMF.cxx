@@ -59,7 +59,12 @@ namespace DriverGMF
 
   bool isExtensionCorrect( const std::string& fileName )
   {
+#if defined(__APPLE__)
+    // boost::filesystem::extension() is not available in recent Boost
     std::string ext  = boost::filesystem::path(fileName).extension().string();
+#else
+    std::string ext  = boost::filesystem::extension(fileName);
+#endif
 
     switch ( ext.size() ) {
     case 5: return ( ext == ".mesh" || ext == ".solb" );

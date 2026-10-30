@@ -527,7 +527,6 @@ void SMDS_NodeFactory::SetShapeDim( int shapeID, int dim )
 
 SMDS_ElementChunk::SMDS_ElementChunk( SMDS_ElementFactory* factory, smIdType id0 ):
   myFactory( factory ),
-  myElements( 0 ),
   my1stID( id0 )//,
   //mySubIDSet( 0 )
   // myMinSubID( std::numeric_limits<int>::max() ),
@@ -554,6 +553,7 @@ SMDS_ElementChunk::SMDS_ElementChunk( SMDS_ElementFactory* factory, smIdType id0
 
 SMDS_ElementChunk::~SMDS_ElementChunk()
 {
+#if defined(__APPLE__)
   // Delete the array with its real element type: deleting an array of
   // SMDS_MeshNode/SMDS_MeshCell through a SMDS_MeshElement* is undefined
   // behaviour. As SMDS_MeshElement is abstract, clang concludes that the
@@ -565,6 +565,9 @@ SMDS_ElementChunk::~SMDS_ElementChunk()
     delete [] static_cast< SMDS_MeshNode* >( myElements );
   else
     delete [] static_cast< SMDS_MeshCell* >( myElements );
+#else
+  delete [] myElements;
+#endif
   myFactory->myChunksWithUnused.erase( this );
 }
 
